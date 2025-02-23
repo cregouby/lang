@@ -17,6 +17,8 @@
 #' @param r_script A single R script to translate. Defaults to NULL. If it is
 #' null, then every R script in the `r_folder` will be translated
 #' @param r_folder The source R scripts. It defaults to the 'R' folder.
+#' @param prompt_label the prompt label in mall. Either "translate_software" (the default),
+#' for a prompt tailored for roxygen translation, or "translate" for general translation.
 #'
 #' @export
 translate_roxygen <- function(
@@ -24,7 +26,8 @@ translate_roxygen <- function(
     lang_sub_folder = to_iso639(lang, silent = FALSE),
     lang_folder = path("man-lang"),
     r_script = NULL,
-    r_folder = path("R")) {
+    r_folder = path("R"),
+    prompt_label = "translate_software") {
   if (nchar(lang_sub_folder) != 2) {
     cli_abort("Use an ISO 639 2 character language code for `folder`")
   }
@@ -44,7 +47,8 @@ translate_roxygen <- function(
       dir = lang_folder,
       no = i,
       of = length(r_script),
-      pkg_env = pkg_env
+      pkg_env = pkg_env,
+      prompt_label = prompt_label
     )
   }
 }
@@ -54,7 +58,8 @@ translate_roxygen_imp <- function(path,
                                   dir,
                                   no = 1,
                                   of = 1,
-                                  pkg_env = NULL) {
+                                  pkg_env = NULL,
+                                  prompt_label) {
   current_roxy <- roxy_comments(path)
   result_msg <- ""
   if (is.null(current_roxy)) {
@@ -96,10 +101,12 @@ translate_roxygen_imp <- function(path,
         }
         cli_progress_update()
         if (tg %in% c(
-          "title", "description", "param", "seealso",
+          "title", "description", "param", "seealso", "describeIn",
           "details", "returns", "format", "section", "return"
         )) {
-          raw <- llm_vec_translate(raw, language = lang)
+          raw <- llm_vec_translate(raw, 
+                                   language = lang,
+                                   prompt_label = prompt_label)
           if (tg == "section") {
             raw <- glue("{raw[1]}:\n{raw[2]}")
           }
@@ -121,7 +128,7 @@ translate_roxygen_imp <- function(path,
       fn_str <- paste0(roxy_call, collapse = "")
       if (grepl("[{]", fn_str) && grepl("[}]", fn_str)) {
         fn_str <- unlist(strsplit(fn_str, "[{]"))[[1]]
-        fn_str <- paste0(fn_str, "{ NULL }")
+        fn_str <- paste0(fn_str, "{ NULL }\n")
       }
       contents <- c(contents, fn_str)
     }

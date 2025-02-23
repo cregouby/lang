@@ -9,7 +9,8 @@ translate_roxygen(
   lang_sub_folder = to_iso639(lang, silent = FALSE),
   lang_folder = path("man-lang"),
   r_script = NULL,
-  r_folder = path("R")
+  r_folder = path("R"),
+  prompt_label = "translate_software"
 )
 }
 \arguments{
@@ -27,6 +28,9 @@ folder from \code{folder}}
 null, then every R script in the \code{r_folder} will be translated}
 
 \item{r_folder}{The source R scripts. It defaults to the 'R' folder.}
+
+\item{prompt_label}{the prompt label in mall. Either "translate_software" (the default),
+for a prompt tailored for roxygen translation, or "translate" for general translation.}
 }
 \description{
 Reads the Roxygen2 tags in the package and translates them. The translations
